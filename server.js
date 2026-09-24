@@ -55,9 +55,9 @@ function makeUser(keyHash = null) {
     settings: { ...DEFAULT_SETTINGS },
     mt5: { connected:false, login:"", server:"", broker:"", symbol:"XAUUSD", balance:null, equity:null, positions:0, lastSeen:null },
     engine: { signal:"WAIT", score:0, price:null, timeframe:"M15", reason:"Waiting for market data", updatedAt:null },
-    ea: { online:false, lastSeen:null, status:"OFFLINE" },
+    ea: { online:false, lastSeen:null, status:"OFFLINE", keyHash },
     events: [],
-    tradeRequests: [],\n    ea: {online:false, lastSeen:null, status:"OFFLINE", keyHash}
+    tradeRequests: []
   };
   users.set(user.id, user);
   return user;
