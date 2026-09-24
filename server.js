@@ -139,7 +139,7 @@ app.post("/api/ea/market", (req,res) => {
     else if (change < -0.03 && rsi >= 28 && rsi <= 45) { signal="SELL"; score=75; reason="Negative momentum with bearish RSI confirmation"; }
   }
   user.engine = {signal,score,price,timeframe:"M15",reason,updatedAt:new Date().toISOString()};
-  res.json({ok:true,engine:user.engine,settings:user.settings,positions:user.mt5.positions});
+  res.json({ok:true,engine:user.engine,settings:user.settings,maxOpenTrades:user.settings.maxOpenTrades,takeProfit:user.settings.takeProfit,positions:user.mt5.positions});
 });
 
 app.post("/api/ea/order-result", (req,res) => {
