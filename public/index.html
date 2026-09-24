@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GOLD AUTOMATE</title><meta name="description" content="GOLD AUTOMATE — XAUUSD analysis and MT5 automation">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div id="landing" class="screen">
+  <div class="brand">✨ GOLD AUTOMATE</div>
+  <div class="tagline">🤖 BOT FOR ALL BROKERS</div>
+  <div class="access-card">
+    <h2>🔑 ENTER ACCESS KEY</h2>
+    <form id="accessForm"><input id="accessKey" autocomplete="off" placeholder="Enter access key" required><button>ENTER</button></form>
+    <p id="accessMsg"></p>
+  </div>
+</div>
+<div id="app" class="hidden">
+<header><strong>✨ GOLD AUTOMATE</strong><nav>
+<button data-page="dashboard">Dashboard</button><button data-page="analysis">Gold Analysis</button><button data-page="bot">Bot Control</button><button data-page="open">Open Trades</button><button data-page="history">Trade History</button><button data-page="settings">Settings</button><button data-page="mt5">MT5</button>
+</nav></header>
+<main>
+<section id="dashboard" class="page active"><h1>Dashboard</h1><div class="grid"><div class="card"><small>MT5</small><b id="dashMt5">DISCONNECTED</b></div><div class="card"><small>Balance</small><b id="balance">—</b></div><div class="card"><small>Equity</small><b id="equity">—</b></div><div class="card"><small>Open Trades</small><b id="positions">0 / 20</b></div></div><div class="card"><h3>Engine</h3><div id="dashEngine">WAITING</div></div></section>
+<section id="analysis" class="page"><h1>Gold Analysis</h1><div class="card"><div class="signal" id="signal">WAIT</div><div class="metrics"><span>Price <b id="price">—</b></span><span>Score <b id="score">—</b></span><span>Timeframe <b>M15</b></span></div><p id="reason">Waiting for real MT5 EA market data.</p></div></section>
+<section id="bot" class="page"><h1>Bot Control</h1><div class="card"><div class="bigstatus" id="botStatus">OFF</div><button id="startBot">START BOT</button><button id="stopBot" class="secondary">STOP BOT</button><p id="botMsg">Connect the MT5 EA to enable real trading.</p></div><div class="card"><h3>ELISY254 activity</h3><pre id="events">No events yet.</pre></div></section>
+<section id="open" class="page"><h1>Open Trades</h1><div class="card"><p>Real MT5 positions reported by the connected EA.</p><div class="bigNumber" id="openCount">0 / 20</div></div></section>
+<section id="history" class="page"><h1>Trade History</h1><div class="card"><p>Real MT5 trade history will appear here from the EA bridge.</p><p>No simulated trades are shown.</p></div></section>
+<section id="settings" class="page"><h1>Settings</h1><form id="settingsForm" class="card form">
+<label>Auto Trade<select id="autoTrade"><option value="false">OFF</option><option value="true">ON</option></select></label>
+<label>Trade Direction<select id="direction"><option>BUY</option><option>SELL</option><option>BOTH</option></select></label>
+<label>Maximum Open Trades<input id="maxOpenTrades" type="number" min="1" max="20" value="20"></label>
+<label>Take Profit<input id="takeProfit" type="number" min="0.01" step="0.01" value="2"></label>
+<label>Allow BUY<select id="allowBuy"><option value="true">ON</option><option value="false">OFF</option></select></label>
+<label>Allow SELL<select id="allowSell"><option value="true">ON</option><option value="false">OFF</option></select></label>
+<button>SAVE SETTINGS</button><p id="settingsMsg"></p></form></section>
+<section id="mt5" class="page"><h1>MT5</h1><div class="card"><h3>Connect the EA</h3><p>The website does not ask for or store your MetaApi token. Run the GOLD AUTOMATE MQL5 EA in your own MT5 terminal and enter your GOLD AUTOMATE access key in the EA settings.</p><p>For real trading, use a real broker account and a trading-enabled MT5 account. The website shows disconnected when the EA is not online.</p><div id="mt5Info">EA: OFFLINE</div></div></section>
+</main></div>
+<script src="/app.js"></script>
+</body></html>
