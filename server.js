@@ -79,6 +79,26 @@ function addEvent(user, message) {
   user.events = user.events.slice(0, 50);
 }
 
+/*
+ * Multi-user MT5 model:
+ * - Every access key maps to one isolated website user.
+ * - Users submit their own broker/login/password here.
+ * - The password is encrypted in server memory and is NEVER returned to the browser.
+ * - The actual MT5 terminal remains owner-hosted; an MT5 terminal/EA session must
+ *   be mapped to the correct user before real trading/account data is available.
+ */
+function encryptSecret(secret) {
+  const key = crypto.createHash("sha256").update(String(API_SECRET || "CHANGE_ME")).digest();
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const ciphertext = Buffer.concat([cipher.update(String(secret), "utf8"), cipher.final()]);
+  return {
+    iv: iv.toString("base64"),
+    data: ciphertext.toString("base64"),
+    tag: cipher.getAuthTag().toString("base64")
+  };
+}
+
 app.post("/api/access", (req,res) => {
   const key = String(req.body?.accessKey || "").trim();
   if (!key || !ACCESS_KEYS.includes(key)) {
@@ -103,6 +123,58 @@ app.post("/api/settings", requireUser, (req,res) => {
   req.user.settings = normalizeSettings(req.body);
   if (!req.user.settings.autoTrade) addEvent(req.user, "Auto Trade OFF.");
   res.json({ok:true,settings:req.user.settings});
+});
+
+/* Register/update this user's broker account for the owner-hosted MT5 bridge. */
+app.post("/api/mt5/profile", requireUser, (req,res) => {
+  const broker = String(req.body?.broker || "").trim();
+  const server = String(req.body?.server || "").trim();
+  const login = String(req.body?.login || "").trim();
+  const password = String(req.body?.password || "");
+
+  if (!broker || !server || !login || !password) {
+    return res.status(400).json({ok:false,error:"MT5_FIELDS_REQUIRED"});
+  }
+
+  if (password.length < 4) {
+    return res.status(400).json({ok:false,error:"INVALID_MT5_PASSWORD"});
+  }
+
+  req.user.mt5Credentials = {
+    broker,
+    server,
+    login,
+    password: encryptSecret(password),
+    updatedAt: new Date().toISOString()
+  };
+
+  req.user.mt5.broker = broker;
+  req.user.mt5.server = server;
+  req.user.mt5.login = login;
+  req.user.mt5.connected = false;
+
+  addEvent(req.user, "MT5 account details registered for owner-hosted terminal connection.");
+  res.json({
+    ok:true,
+    status:"REGISTERED",
+    message:"MT5 details saved securely. Waiting for the owner-hosted MT5 terminal.",
+    mt5:{broker,server,login,connected:false}
+  });
+});
+
+app.get("/api/mt5/profile", requireUser, (req,res) => {
+  const c = req.user.mt5Credentials;
+  res.json({
+    ok:true,
+    configured:Boolean(c),
+    mt5:{
+      broker:req.user.mt5.broker,
+      server:req.user.mt5.server,
+      login:req.user.mt5.login,
+      connected:req.user.mt5.connected,
+      passwordConfigured:Boolean(c?.password)
+    }
+  });
 });
 
 app.post("/api/bot/start", requireUser, (req,res) => {
@@ -132,10 +204,7 @@ function authenticateEA(req, res) {
   const keyHash = tokenHash(accessKey).slice(0,36);
   let user = [...users.values()].find(u => u.ea?.keyHash === keyHash);
 
-  if (!user) {
-    user = makeUser(keyHash);
-  }
-
+  if (!user) user = makeUser(keyHash);
   return user;
 }
 
@@ -147,9 +216,9 @@ app.post("/api/ea/heartbeat", (req,res) => {
   user.ea.lastSeen = new Date().toISOString();
   user.ea.status = "RUNNING";
   user.mt5.connected = true;
-  user.mt5.login = String(req.body?.login || "");
-  user.mt5.server = String(req.body?.server || "");
-  user.mt5.broker = String(req.body?.broker || "");
+  user.mt5.login = String(req.body?.login || user.mt5.login || "");
+  user.mt5.server = String(req.body?.server || user.mt5.server || "");
+  user.mt5.broker = String(req.body?.broker || user.mt5.broker || "");
   user.mt5.symbol = String(req.body?.symbol || "XAUUSD");
   user.mt5.balance = Number.isFinite(Number(req.body?.balance)) ? Number(req.body.balance) : null;
   user.mt5.equity = Number.isFinite(Number(req.body?.equity)) ? Number(req.body.equity) : null;
@@ -176,25 +245,16 @@ app.post("/api/ea/market", (req,res) => {
 
   if (Number.isFinite(rsi)) {
     if (change > 0.03 && rsi >= 55 && rsi <= 72) {
-      signal="BUY";
-      score=75;
-      reason="Positive momentum with bullish RSI confirmation";
+      signal="BUY"; score=75; reason="Positive momentum with bullish RSI confirmation";
     } else if (change < -0.03 && rsi >= 28 && rsi <= 45) {
-      signal="SELL";
-      score=75;
-      reason="Negative momentum with bearish RSI confirmation";
+      signal="SELL"; score=75; reason="Negative momentum with bearish RSI confirmation";
     }
   }
 
-  user.engine = {
-    signal, score, price, timeframe:"M15", reason,
-    updatedAt:new Date().toISOString()
-  };
+  user.engine = { signal, score, price, timeframe:"M15", reason, updatedAt:new Date().toISOString() };
 
   res.json({
-    ok:true,
-    engine:user.engine,
-    settings:user.settings,
+    ok:true, engine:user.engine, settings:user.settings,
     maxOpenTrades:user.settings.maxOpenTrades,
     takeProfit:user.settings.takeProfit,
     positions:user.mt5.positions
@@ -204,7 +264,6 @@ app.post("/api/ea/market", (req,res) => {
 app.post("/api/ea/order-result", (req,res) => {
   const user = authenticateEA(req,res);
   if (!user) return;
-
   addEvent(user, String(req.body?.message || "MT5 order update"));
   res.json({ok:true});
 });
@@ -233,15 +292,9 @@ app.get("/api/ea/command", (req,res) => {
   const action = allowed && room ? signal : "WAIT";
 
   res.json({
-    ok:true,
-    action,
-    takeProfit:s.takeProfit,
-    maxOpenTrades:s.maxOpenTrades,
-    positions:user.mt5.positions,
-    signalScore:user.engine.score,
-    reason: allowed
-      ? (room ? user.engine.reason : "Maximum open trades reached")
-      : "Signal blocked by user settings"
+    ok:true, action, takeProfit:s.takeProfit, maxOpenTrades:s.maxOpenTrades,
+    positions:user.mt5.positions, signalScore:user.engine.score,
+    reason: allowed ? (room ? user.engine.reason : "Maximum open trades reached") : "Signal blocked by user settings"
   });
 });
 
@@ -251,10 +304,15 @@ app.get("/api/status", requireUser, (req,res) => {
 
 function safeUser(u) {
   return {
-    id:u.id,
-    name:u.name,
-    settings:u.settings,
+    id:u.id, name:u.name, settings:u.settings,
     mt5:{...u.mt5, password:null},
+    mt5Profile:{
+      configured:Boolean(u.mt5Credentials),
+      broker:u.mt5.broker,
+      server:u.mt5.server,
+      login:u.mt5.login,
+      passwordConfigured:Boolean(u.mt5Credentials?.password)
+    },
     engine:u.engine,
     ea:{online:u.ea.online,lastSeen:u.ea.lastSeen,status:u.ea.status},
     events:u.events.slice(0,20)
@@ -262,5 +320,4 @@ function safeUser(u) {
 }
 
 app.use((req,res) => res.sendFile(path.join(__dirname,"public","index.html")));
-
 app.listen(PORT, () => console.log("SHARP GOLD BOT running on port " + PORT));
