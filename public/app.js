@@ -5,10 +5,54 @@ function showApp(){ $("landing").classList.add("hidden");$("app").classList.remo
 $("accessForm").addEventListener("submit",async e=>{e.preventDefault();$("accessMsg").textContent="";try{const d=await api("/api/access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessKey:$("accessKey").value.trim()})});token=d.token;sessionStorage.setItem("gold_automate_token",token);showApp()}catch(err){$("accessMsg").textContent=err.message}});
 document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));$(b.dataset.page).classList.add("active")}));
 $("settingsForm").addEventListener("submit",async e=>{e.preventDefault();const body={autoTrade:$("autoTrade").value==="true",direction:$("direction").value,maxOpenTrades:Math.min(20,Math.max(1,Number($("maxOpenTrades").value))),takeProfit:Number($("takeProfit").value),allowBuy:$("allowBuy").value==="true",allowSell:$("allowSell").value==="true"};try{const d=await api("/api/settings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});$("settingsMsg").textContent="Settings saved.";render(d.settings)}catch(err){$("settingsMsg").textContent=err.message}});
-$("startBot").onclick=async()=>{try{const d=await api("/api/bot/start",{method:"POST"});$("botMsg").textContent="START requested. Waiting for MT5 EA.";render(d.settings)}catch(e){$("botMsg").textContent=e.message}};
+$("startBot").onclick=async()=>{try{const d=await api("/api/bot/start",{method:"POST"});$("botMsg").textContent="START requested. Waiting for owner-hosted MT5 EA.";render(d.settings)}catch(e){$("botMsg").textContent=e.message}};
 $("stopBot").onclick=async()=>{try{const d=await api("/api/bot/stop",{method:"POST"});$("botMsg").textContent="Auto Trade stopped.";render(d.settings)}catch(e){$("botMsg").textContent=e.message}};
+
+$("saveMt5").addEventListener("click",async()=>{
+  const broker=$("profileBroker").value.trim();
+  const server=$("profileServer").value.trim();
+  const login=$("profileLogin").value.trim();
+  const password=$("profilePassword").value;
+  $("mt5Info").textContent="🟡 REGISTERING MT5 ACCOUNT...";
+  if(!broker||!server||!login||!password){
+    $("mt5Info").textContent="⚠️ Enter Broker Name, Broker Server, Login and Password.";
+    return;
+  }
+  try{
+    const d=await api("/api/mt5/profile",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({broker,server,login,password})
+    });
+    $("profilePassword").value="";
+    $("mt5Info").textContent="🟡 REGISTERED — WAITING FOR OWNER-HOSTED MT5 TERMINAL";
+    if(d.mt5){$("profileBroker").value=d.mt5.broker||broker;$("profileServer").value=d.mt5.server||server;$("profileLogin").value=d.mt5.login||login}
+  }catch(e){
+    $("mt5Info").textContent="❌ "+e.message;
+  }
+});
+
 function render(s){if(!s)return;$("autoTrade").value=String(s.autoTrade);$("direction").value=s.direction;$("maxOpenTrades").value=s.maxOpenTrades;$("takeProfit").value=s.takeProfit;$("allowBuy").value=String(s.allowBuy);$("allowSell").value=String(s.allowSell);$("botStatus").textContent=s.autoTrade?"ON":"OFF"}
-function paint(u){$("dashMt5").textContent=u.ea.online?"CONNECTED":"DISCONNECTED";$("balance").textContent=u.mt5.balance==null?"—":u.mt5.balance.toFixed(2);$("equity").textContent=u.mt5.equity==null?"—":u.mt5.equity.toFixed(2);$("positions").textContent=u.mt5.positions+" / "+u.settings.maxOpenTrades;$("openCount").textContent=u.mt5.positions+" / "+u.settings.maxOpenTrades;$("signal").textContent=u.engine.signal;$("price").textContent=u.engine.price==null?"—":u.engine.price;$("score").textContent=u.engine.score+"%";$("reason").textContent=u.engine.reason;$("dashEngine").textContent=u.engine.signal+" — "+u.engine.reason;$("mt5Info").textContent="EA: "+(u.ea.online?"ONLINE":"OFFLINE");$("events").textContent=u.events?.map(x=>x.time+"  "+x.message).join("\n")||"No events yet.";render(u.settings)}
+function paint(u){
+  $("dashMt5").textContent=u.ea.online?"CONNECTED":"DISCONNECTED";
+  $("balance").textContent=u.mt5.balance==null?"—":u.mt5.balance.toFixed(2);
+  $("equity").textContent=u.mt5.equity==null?"—":u.mt5.equity.toFixed(2);
+  $("positions").textContent=u.mt5.positions+" / "+u.settings.maxOpenTrades;
+  $("openCount").textContent=u.mt5.positions+" / "+u.settings.maxOpenTrades;
+  $("signal").textContent=u.engine.signal;
+  $("price").textContent=u.engine.price==null?"—":u.engine.price;
+  $("score").textContent=u.engine.score+"%";
+  $("reason").textContent=u.engine.reason;
+  $("dashEngine").textContent=u.engine.signal+" — "+u.engine.reason;
+  $("mt5Info").textContent="MT5: "+(u.ea.online?"🟢 CONNECTED":"🟡 WAITING FOR OWNER-HOSTED TERMINAL");
+  if(u.mt5Profile){
+    if(u.mt5Profile.broker)$("profileBroker").value=u.mt5Profile.broker;
+    if(u.mt5Profile.server)$("profileServer").value=u.mt5Profile.server;
+    if(u.mt5Profile.login)$("profileLogin").value=u.mt5Profile.login;
+  }
+  $("events").textContent=u.events?.map(x=>x.time+"  "+x.message).join("\n")||"No events yet.";
+  render(u.settings)
+}
 async function load(){try{const d=await api("/api/me");paint(d.user)}catch(e){sessionStorage.removeItem("gold_automate_token");token="";location.reload()}}
 if(token)showApp();else $("landing").classList.remove("hidden");
 setInterval(()=>{if(token)load()},5000);
