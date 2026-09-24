@@ -1,8 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SHARP GOLD BOT</title>
 <meta name="description" content="SHARP GOLD BOT — professional XAUUSD analysis and MT5 automation">
 <link rel="stylesheet" href="/style.css">
@@ -49,7 +48,22 @@
 <label>Allow BUY<select id="allowBuy"><option value="true">ON</option><option value="false">OFF</option></select></label>
 <label>Allow SELL<select id="allowSell"><option value="true">ON</option><option value="false">OFF</option></select></label>
 <button>SAVE SETTINGS</button><p id="settingsMsg"></p></form></section>
-<section id="mt5" class="page"><h1>MT5 Connection</h1><div class="card"><h3>Connect your broker account</h3><p>Enter your own MT5 broker details here. Your access key is not your MT5 password.</p><div class="mt5-user-form"><input id="profileLogin" inputmode="numeric" placeholder="MT5 Login"><input id="profileServer" placeholder="MT5 Broker / Server"><input id="profileBroker" placeholder="Broker Name"><button id="saveMt5">CONNECT MT5</button></div><div id="mt5Info">EA: OFFLINE</div></div></section>
+
+<section id="mt5" class="page">
+  <h1>MT5 Connection</h1>
+  <div class="card mt5-connect-card">
+    <div class="connection-heading">🔌 CONNECT YOUR MT5 BROKER ACCOUNT</div>
+    <p class="connection-note">Enter the broker account you want SHARP GOLD BOT to use.</p>
+    <div class="mt5-user-form">
+      <label>Broker Name<input id="profileBroker" autocomplete="organization" placeholder="Enter Broker Name"></label>
+      <label>Broker Server<input id="profileServer" autocomplete="off" placeholder="Enter Broker Server"></label>
+      <label>MT5 Login<input id="profileLogin" inputmode="numeric" autocomplete="username" placeholder="Enter MT5 Login"></label>
+      <label>MT5 Password<input id="profilePassword" type="password" autocomplete="current-password" placeholder="Enter MT5 Password"></label>
+      <button id="saveMt5">CONNECT MT5</button>
+    </div>
+    <div id="mt5Info" class="mt5-status">🔴 MT5: NOT CONNECTED</div>
+  </div>
+</section>
 </main></div>
 <script src="/app.js"></script>
 </body></html>
