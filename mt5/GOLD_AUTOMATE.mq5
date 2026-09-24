@@ -161,6 +161,10 @@ void SendMarketAndTrade() {
 }
 
 int OnInit() {
+   if((ENUM_ACCOUNT_TRADE_MODE)AccountInfoInteger(ACCOUNT_TRADE_MODE) != ACCOUNT_TRADE_MODE_REAL) {
+      DrawPanel("BLOCKED","WAIT",0,20,"REAL MT5 ACCOUNT REQUIRED - DEMO/CONTEST NOT ALLOWED");
+      return INIT_FAILED;
+   }
    EventSetTimer(MathMax(2,TimerSeconds));
    SymbolSelect(TradeSymbol,true);
    DrawPanel("STARTING","WAIT",0,20,"Connecting to GOLD AUTOMATE...");
