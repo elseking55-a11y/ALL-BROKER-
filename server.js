@@ -57,7 +57,7 @@ function makeUser(keyHash = null) {
     engine: { signal:"WAIT", score:0, price:null, timeframe:"M15", reason:"Waiting for market data", updatedAt:null },
     ea: { online:false, lastSeen:null, status:"OFFLINE", keyHash },
     events: [],
-    tradeRequests: []
+    tradeRequests: [],\n    mt5Credentials: null
   };
   users.set(user.id, user);
   return user;
@@ -169,7 +169,7 @@ app.get("/api/status", requireUser, (req,res)=>res.json({ok:true, user:safeUser(
 
 function safeUser(u) {
   return {
-    id:u.id,name:u.name,settings:u.settings,mt5:{...u.mt5},
+    id:u.id,name:u.name,settings:u.settings,mt5:{...u.mt5, password:null},
     engine:u.engine,ea:{online:u.ea.online,lastSeen:u.ea.lastSeen,status:u.ea.status},
     events:u.events.slice(0,20)
   };
