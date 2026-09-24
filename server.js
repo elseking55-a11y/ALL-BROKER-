@@ -48,7 +48,7 @@ function normalizeSettings(input = {}) {
     allowSell: input.allowSell !== false
   };
 }
-function makeUser() {
+function makeUser(keyHash = null) {
   const user = {
     id: id(),
     name: "ELISY254 User",
@@ -57,7 +57,7 @@ function makeUser() {
     engine: { signal:"WAIT", score:0, price:null, timeframe:"M15", reason:"Waiting for market data", updatedAt:null },
     ea: { online:false, lastSeen:null, status:"OFFLINE" },
     events: [],
-    tradeRequests: []
+    tradeRequests: [],\n    ea: {online:false, lastSeen:null, status:"OFFLINE", keyHash}
   };
   users.set(user.id, user);
   return user;
@@ -174,5 +174,5 @@ function safeUser(u) {
   };
 }
 
-app.get("*", (req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
+app.use((req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 app.listen(PORT, ()=>console.log("GOLD AUTOMATE running on port "+PORT));
