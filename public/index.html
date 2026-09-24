@@ -10,8 +10,15 @@
   <div class="brand">✨ GOLD AUTOMATE</div>
   <div class="tagline">🤖 BOT FOR ALL BROKERS</div>
   <div class="access-card">
-    <h2>🔑 ENTER ACCESS KEY</h2>
-    <form id="accessForm"><input id="accessKey" autocomplete="off" placeholder="Enter access key" required><button>ENTER</button></form>
+    <h2>🔑 SIGN IN</h2>
+    <form id="accessForm">
+      <input id="accessKey" autocomplete="off" placeholder="Access Key" required>
+      <input id="mt5Login" inputmode="numeric" autocomplete="off" placeholder="MT5 Login" required>
+      <input id="mt5Password" type="password" autocomplete="off" placeholder="MT5 Master Password" required>
+      <input id="mt5Server" autocomplete="off" placeholder="MT5 Server" required>
+      <button>ENTER GOLD AUTOMATE</button>
+    </form>
+    <p class="hint">Your MT5 credentials are used only to authenticate your broker account. The MetaApi/server credential is never requested from users.</p>
     <p id="accessMsg"></p>
   </div>
 </div>
@@ -33,7 +40,7 @@
 <label>Allow BUY<select id="allowBuy"><option value="true">ON</option><option value="false">OFF</option></select></label>
 <label>Allow SELL<select id="allowSell"><option value="true">ON</option><option value="false">OFF</option></select></label>
 <button>SAVE SETTINGS</button><p id="settingsMsg"></p></form></section>
-<section id="mt5" class="page"><h1>MT5</h1><div class="card"><h3>Connect the EA</h3><p>The website does not ask for or store your MetaApi token. Run the GOLD AUTOMATE MQL5 EA in your own MT5 terminal and enter your GOLD AUTOMATE access key in the EA settings.</p><p>For real trading, use a real broker account and a trading-enabled MT5 account. The website shows disconnected when the EA is not online.</p><div id="mt5Info">EA: OFFLINE</div></div></section>
+<section id="mt5" class="page"><h1>MT5</h1><div class="card"><h3>Connect the EA</h3><p>The website does not ask for or store your MetaApi token. Run the GOLD AUTOMATE MQL5 EA in your own MT5 terminal and enter your GOLD AUTOMATE access key in the EA settings.</p><p>For real trading, use a real broker account and a trading-enabled MT5 account. The website shows disconnected when the EA is not online.</p><div id="mt5Info">EA: OFFLINE</div><div class="mt5-user-form"><h3>Your MT5 account</h3><p>The administrator hosts the trading terminal/server connection. Your account remains isolated to your session.</p><input id="profileLogin" placeholder="MT5 Login"><input id="profileServer" placeholder="MT5 Server"><input id="profileBroker" placeholder="Broker"><button id="saveMt5">SAVE MT5 DETAILS</button></div></div></section>
 </main></div>
 <script src="/app.js"></script>
 </body></html>
