@@ -70,7 +70,8 @@ function addEvent(user, message) {
 app.post("/api/access", (req,res) => {
   const key = String(req.body?.accessKey || "").trim();
   if (!key || !ACCESS_KEYS.includes(key)) return res.status(403).json({ok:false,error:"INVALID_ACCESS_KEY"});
-  const user = makeUser();
+  const keyHash = tokenHash(key).slice(0, 36);
+  const user = [...users.values()].find(u => u.ea?.keyHash === keyHash) || makeUser(keyHash);
   const session = crypto.randomBytes(32).toString("hex");
   sessions.set(session, user.id);
   addEvent(user, "Access granted. GOLD AUTOMATE ready.");
