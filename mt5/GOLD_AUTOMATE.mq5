@@ -54,7 +54,7 @@ string JsonNumber(string json, string key) {
    p += StringLen(marker);
    int e=p;
    while(e<StringLen(json) && StringFind(",}",StringSubstr(json,e,1))<0) e++;
-   return StringTrim(StringSubstr(json,p,e-p));
+   return StringSubstr(json,p,e-p);
 }
 
 string JsonString(string json, string key) {
